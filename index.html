@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Rapportino Fibra – WebApp</title>
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="theme-color" content="#0b1b2a" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">RF</div>
+      <div>
+        <div class="title">Rapportino Fibra</div>
+        <div class="subtitle">Compilazione rapida per giuntisti</div>
+      </div>
+    </div>
+    <button id="btnPreview" class="btn btn-ghost" type="button" title="Anteprima rapportino">
+      Anteprima
+    </button>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2 class="h2">Dati generali</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span>Tecnici</span>
+          <input id="tecnici" type="text" placeholder="Es. Rossi M., Bianchi L." autocomplete="name" />
+          <small>Puoi inserire uno o più nomi separati da virgola.</small>
+        </label>
+
+        <label class="field">
+          <span>Data</span>
+          <input id="data" type="date" />
+          <div id="dataEstesa" class="date-long">—</div>
+        </label>
+
+        <label class="field">
+          <span>Società</span>
+          <select id="societa">
+            <option value="AET">AET</option>
+          </select>
+          <small class="muted">Per ora: solo AET (aggiungibile in seguito).</small>
+        </label>
+      </div>
+
+      <div class="row row-gap">
+        <button id="btnAddAttivita" class="btn btn-primary" type="button">+ Aggiungi attività</button>
+        <button id="btnReset" class="btn btn-ghost" type="button">Svuota tutto</button>
+        <div class="spacer"></div>
+        
+      </div>
+
+      <div id="supportHint" class="hint"></div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2 class="h2">Attività</h2>
+        <div class="spacer"></div>
+        <span class="pill" id="attivitaCount">0</span>
+      </div>
+
+      <div id="attivitaList" class="attivita-list"></div>
+      <div id="emptyState" class="empty">
+        Nessuna attività inserita. Tocca <b>“Aggiungi attività”</b>.
+      </div>
+    </section>
+  </main>
+
+  <!-- Activity editor (full-screen modal) -->
+  <div id="editorOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Editor attività">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="editorTitle">Nuova attività</div>
+          <div class="sheet-subtitle">Compila i campi richiesti e salva.</div>
+        </div>
+        <button id="btnCloseEditor" class="btn btn-ghost" type="button">Chiudi</button>
+      </div>
+
+      <div class="sheet-body">
+        <div class="grid">
+          <label class="field">
+            <span>Località</span>
+            <input id="edLocalita" type="text" placeholder="Es. Milano (MI) – Via ..." />
+          </label>
+
+          <label class="field">
+            <span>Lavoro</span>
+            <select id="edLavoro">
+              <option value="" selected disabled>Seleziona…</option>
+              <option value="muffola">Muffola</option>
+              <option value="roe">Roe</option>
+              <option value="armadio">Armadio</option>
+              <option value="altro">Altro</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- MUFFOLA -->
+        <section id="secMuffola" class="subcard hidden">
+          <div class="subcard-title">Dettagli Muffola</div>
+          <div class="grid">
+            <label class="field">
+              <span>Nome muffola</span>
+              <input id="edMuffolaNome" type="text" placeholder="Es. MUF-1234" />
+            </label>
+
+            
+          <label class="field">
+            <span>Muffola esistente</span>
+            <select id="edMuffolaEsistente">
+              <option value="">—</option>
+              <option value="si">Sì</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <div id="wrapMuffolaPosato">
+<label class="field">
+              <span>Posato muffola</span>
+              <select id="edMuffolaPosato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+          
+            <label class="field">
+              <span>Effettuato spillato</span>
+              <select id="edMuffolaSpillato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row row-gap">
+            <div class="subcard-title" style="margin:0">Inserimento cavo</div>
+            <div class="spacer"></div>
+            <button id="btnAddCavo" class="btn btn-ghost" type="button">+ Aggiungi cavo</button>
+          </div>
+
+          <div id="caviList" class="cavi-list"></div>
+
+          <div class="grid">
+            
+
+            <label class="field">
+              <span>Note</span>
+              <textarea id="edMuffolaNote" rows="3" placeholder="Note aggiuntive…"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <!-- ROE -->
+        <section id="secRoe" class="subcard hidden">
+          <div class="subcard-title">Dettagli ROE</div>
+          <div class="grid">
+            <label class="field">
+              <span>Nome ROE</span>
+              <input id="edRoeNome" type="text" placeholder="Es. ROE-5678" />
+            </label>
+
+            <label class="field">
+              <span>Posato ROE</span>
+              <select id="edRoePosato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option>posato 12 ui core</option>
+                <option>posato 12 ui Guscio</option>
+                <option>posato 16 ui pozzetto</option>
+                <option>posato 24 ui core</option>
+                <option>posato 24 ui Guscio</option>
+                <option>posato 48 ui core</option>
+                <option>posato 48 ui Guscio</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Cablato ROE</span>
+              <select id="edRoeCablato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          <label class="field">
+            <span>Effettuato spillato</span>
+            <select id="edRoeSpillato">
+              <option value="">—</option>
+              <option value="si">Sì</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+
+            
+
+            
+            <div class="subsection">
+              <div class="sub-h">Inserimento cavi</div>
+              <div id="roeCaviList" class="cavi-list"></div>
+              <button type="button" class="btn secondary" onclick="addRoeCavo()">+ Aggiungi cavo</button>
+            </div>
+
+
+            <label class="field">
+              <span>Terminazioni</span>
+              <input id="edRoeTerminazioni" type="text" placeholder="" />
+            </label>
+
+<label class="field">
+              <span>Giunzioni</span>
+              <input id="edRoeGiunzioni" type="text" placeholder="Campo libero…" />
+            </label>
+
+            <label class="field full">
+              <span>Note</span>
+              <textarea id="edRoeNote" rows="3" placeholder="Note aggiuntive…"></textarea>
+            </label>
+          </div>
+        </section>
+
+
+        <!-- ARMADIO -->
+        <section id="secArmadio" class="subcard hidden">
+          <div class="subcard-title">Dettagli Armadio</div>
+
+          <div class="grid">
+            <label class="field">
+              <span>Nome armadio</span>
+              <input id="edArmadioNome" type="text" placeholder="Es. ARM-001" />
+            </label>
+
+            <label class="field">
+              <span>Posato armadio</span>
+              <select id="edArmadioPosato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Cablato armadio</span>
+              <select id="edArmadioCablato">
+                <option value="" selected disabled>Seleziona…</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row row-gap" style="margin-top:10px;">
+            <div class="subcard-title" style="margin:0">Inserimento cavo</div>
+            <div class="spacer"></div>
+            <button id="btnAddArmadioCavo" class="btn btn-ghost" type="button">+ Aggiungi cavo</button>
+
+          <button type="button" class="btn secondary" id="btnToggleArmadioSoloTerm">Solo terminazioni</button>
+
+          <div class="subsection" id="armadioSoloTermPanel" style="display:none;">
+            <div class="sub-h">Solo terminazioni</div>
+
+          <div class="subsection" id="armadioTermSection">
+            <div class="sub-h">Solo terminazioni</div>
+            <div id="armadioTermList"></div>
+          </div>
+
+            <div class="grid-2">
+              <label class="field">
+                <span>Nome cavo</span>
+                <input id="edArmadioSoloNome" type="text" placeholder="" />
+              </label>
+              <label class="field">
+                <span>Terminazioni</span>
+                <input id="edArmadioSoloTerm" type="number" min="0" placeholder="0" />
+              </label>
+            </div>
+            <div class="row-actions">
+              <button type="button" class="btn" id="btnAddArmadioSoloTerm">Aggiungi</button>
+              <button type="button" class="btn secondary" id="btnCloseArmadioSoloTerm">Chiudi</button>
+            </div>
+          </div>
+
+          </div>
+
+          <div id="armadioCaviList" class="cavi-list"></div>
+        <div class="grid" style="margin-top:10px;">
+            
+
+            <label class="field full">
+              <span>Note</span>
+              <textarea id="edArmadioNote" rows="3" placeholder="Note aggiuntive…"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <!-- ALTRO -->
+        <section id="secAltro" class="subcard hidden">
+          <div class="subcard-title">Altro</div>
+          <label class="field">
+            <span>Note</span>
+            <textarea id="edAltroNote" rows="5" placeholder="Descrivi l’attività…"></textarea>
+          </label>
+        </section>
+
+      </div>
+
+      <div class="sheet-footer">
+        <button id="btnDeleteAttivita" class="btn btn-danger hidden" type="button">Elimina</button>
+        <div class="spacer"></div>
+        <button id="btnSaveAttivita" class="btn btn-primary" type="button">Salva attività</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview overlay -->
+  <div id="previewOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Anteprima rapportino">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">Anteprima rapportino</div>
+          <div class="sheet-subtitle">Questa è la resa “professionale” usata per PDF/Immagine.</div>
+        </div>
+        <button id="btnClosePreview" class="btn btn-ghost" type="button">Chiudi</button>
+      </div>
+
+      <div class="sheet-body">
+        <div id="reportRoot" class="report"></div>
+      </div>
+
+      <div class="sheet-footer">
+        <button id="btnPreviewPdf" class="btn" type="button">Salva PDF</button>
+        <button id="btnPreviewImg" class="btn" type="button">Salva immagine</button>
+        <div class="spacer"></div>
+        <button id="btnPreviewShare" class="btn btn-success" type="button">Condividi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries (CDN). Se vuoi tutto OFFLINE, posso anche “impacchettare” le librerie in locale. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script defer src="app.js"></script>
+</body>
+</html>
